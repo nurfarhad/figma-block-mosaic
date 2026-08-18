@@ -1,0 +1,13 @@
+{
+  "name": "block-mosaic-figma-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A no-network Figma plugin for deterministic geometric mosaics.",
+  "license": "MIT",
+  "scripts": {
+    "validate": "node scripts/validate.mjs && node tests/controller-smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

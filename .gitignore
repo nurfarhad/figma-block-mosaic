@@ -1,0 +1,14 @@
+# Original text exports (preserved locally, not part of the publishable plugin)
+code.txt
+code2.txt
+code3.txt
+
+# Local tooling
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor settings
+.vscode/
+.idea/
