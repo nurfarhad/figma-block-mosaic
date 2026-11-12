@@ -39,6 +39,7 @@ new vm.Script(controller, { filename: manifest.main });
 const ui = await read(manifest.ui);
 check(ui.includes("<!doctype html>"), "ui.html must include an HTML doctype");
 check(!/<fig-[a-z-]+/i.test(ui), "ui.html contains undefined fig-* custom elements");
+check(!/https?:\/\//i.test(ui), "ui.html must not contain external network URLs");
 
 const scripts = [...ui.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
 check(scripts.length > 0, "ui.html must include an inline script");

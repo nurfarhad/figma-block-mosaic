@@ -1,212 +1,288 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Block Mosaic</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      /* ── Tokens ─────────────────────────────────────────────────── */
+      /* ── Modern Figma-Native Design Tokens ─────────────────────── */
       :root {
-        font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-        font-size: 12px;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 11px;
+        line-height: 14px;
+        -webkit-font-smoothing: antialiased;
 
-        --bg:       #1e1e1e;
-        --surface:  #282828;
-        --surface2: #313131;
-        --border:   #3a3a3a;
-        --text:     #e5e5e5;
-        --text2:    #999999;
-        --text3:    #666666;
-        --accent:   #0d99ff;
-        --error:    #f87171;
+        --bg: var(--figma-color-bg, #2c2c2e);
+        --bg-subtle: var(--figma-color-bg-secondary, #222224);
+        --bg-input: var(--figma-color-bg-tertiary, #1c1c1e);
+        --bg-hover: var(--figma-color-bg-hover, rgba(255, 255, 255, 0.08));
+        --bg-active: var(--figma-color-bg-pressed, rgba(255, 255, 255, 0.12));
+
+        --border: var(--figma-color-border, rgba(255, 255, 255, 0.1));
+        --border-subtle: var(--figma-color-border-subtle, rgba(255, 255, 255, 0.06));
+
+        --text: var(--figma-color-text, #ffffff);
+        --text-secondary: var(--figma-color-text-secondary, rgba(255, 255, 255, 0.7));
+        --text-tertiary: var(--figma-color-text-tertiary, rgba(255, 255, 255, 0.4));
+
+        --accent: var(--figma-color-bg-brand, #0d99ff);
+        --accent-hover: var(--figma-color-bg-brand-hover, #0082e6);
+        --accent-text: var(--figma-color-text-onbrand, #ffffff);
+
+        --success: #34d399;
+        --error: #f87171;
+
+        --radius-sm: 4px;
+        --radius-md: 6px;
+        --radius-lg: 8px;
+        --radius-pill: 9999px;
       }
 
       * { box-sizing: border-box; margin: 0; padding: 0; }
 
       html, body {
+        height: auto;
         min-height: 100%;
         background: var(--bg);
         color: var(--text);
+        overflow-x: hidden;
+        user-select: none;
       }
 
       body {
         width: 340px;
         max-width: 100%;
-        overflow: hidden;
       }
 
-      button, input { font: inherit; color: inherit; }
+      button, input {
+        font: inherit;
+        color: inherit;
+        border: none;
+        outline: none;
+        background: transparent;
+      }
 
-      /* ── App shell ──────────────────────────────────────────────── */
       .app {
         width: 340px;
-        max-width: 100%;
-        background: var(--bg);
         display: flex;
         flex-direction: column;
+        background: var(--bg);
       }
 
-      /* ── Titlebar ───────────────────────────────────────────────── */
-      .titlebar {
+      /* ── Preview Stage ──────────────────────────────────────────── */
+      .preview-container {
+        padding: 10px 12px 6px;
+      }
+
+      .preview-card {
+        position: relative;
+        width: 100%;
+        height: 114px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        cursor: pointer;
+        background-color: var(--bg-input);
+        /* Checkerboard for alpha */
+        background-image:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%);
+        background-size: 12px 12px;
+        background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      .preview-card:hover {
+        border-color: var(--text-tertiary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      #previewCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .preview-badge-left {
+        position: absolute;
+        top: 6px;
+        left: 6px;
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 10px 10px 14px;
-        border-bottom: 1px solid var(--border);
+        gap: 5px;
+        padding: 2px 7px;
+        border-radius: var(--radius-pill);
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: 10px;
+        font-weight: 500;
+        color: #ffffff;
+        pointer-events: none;
+        border: 1px solid rgba(255, 255, 255, 0.12);
       }
 
-      .brand-mark {
-        width: 24px;
-        height: 24px;
-        flex: 0 0 24px;
-        display: grid;
-        place-items: center;
-        color: var(--text2);
+      .preview-badge-left .pulse-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
       }
 
-      .brand-mark svg {
-        width: 18px;
-        height: 18px;
-        stroke: currentColor;
-        fill: none;
+      .preview-badge-right {
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        padding: 2px 7px;
+        border-radius: var(--radius-pill);
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: 10px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        opacity: 0;
+        transform: translateY(2px);
+        transition: opacity 0.15s, transform 0.15s;
+        pointer-events: none;
       }
 
-      .title-group { flex: 1; min-width: 0; }
+      .preview-card:hover .preview-badge-right {
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-      h1 {
-        font-size: 13px;
-        line-height: 18px;
-        font-weight: 600;
+      /* ── Preset Chips ───────────────────────────────────────────── */
+      .presets-bar {
+        padding: 4px 12px 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .presets-bar::-webkit-scrollbar { display: none; }
+
+      .preset-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: var(--radius-pill);
+        background: var(--bg-subtle);
+        border: 1px solid var(--border-subtle);
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 10.5px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.12s;
+        flex-shrink: 0;
+      }
+
+      .preset-chip:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .preset-chip.active {
+        background: var(--bg-active);
+        border-color: var(--accent);
         color: var(--text);
       }
 
-      .titlebar-actions {
+      .preset-palette {
         display: flex;
         align-items: center;
         gap: 2px;
       }
 
-      /* ── Icon buttons ───────────────────────────────────────────── */
-      .icon-button {
-        display: grid;
-        place-items: center;
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        border: 0;
-        border-radius: 6px;
-        background: transparent;
-        cursor: pointer;
-        color: var(--text2);
-        transition: background 0.12s, color 0.12s;
+      .preset-color-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
 
-      .icon-button:hover {
-        background: var(--surface);
-        color: var(--text);
-      }
-
-      .icon-button:active { opacity: 0.7; }
-
-      .icon-button:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: -2px;
-      }
-
-      .icon-button svg {
-        width: 15px;
-        height: 15px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-
-      /* ── Sections ───────────────────────────────────────────────── */
-      main { display: flex; flex-direction: column; }
-
-      .section {
-        padding: 14px 14px 12px;
-        border-bottom: 1px solid var(--border);
-      }
-
+      /* ── Section Titles ─────────────────────────────────────────── */
       .section-header {
         display: flex;
         align-items: center;
-        gap: 7px;
-        margin-bottom: 10px;
+        justify-content: space-between;
+        padding: 8px 12px 4px;
       }
 
-      .section-title {
-        font-size: 11px;
-        line-height: 15px;
+      .section-label {
+        font-size: 10px;
         font-weight: 600;
-        letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: var(--text3);
+        letter-spacing: 0.06em;
+        color: var(--text-tertiary);
       }
 
-      /* ── Parameter rows ─────────────────────────────────────────── */
-      .parameter-row {
-        display: grid;
-        grid-template-columns: 86px minmax(0, 1fr);
-        align-items: center;
-        min-height: 32px;
-        margin-bottom: 6px;
+      /* ── Parameter Row ──────────────────────────────────────────── */
+      .control-group {
+        padding: 0 12px;
+        margin-bottom: 8px;
       }
 
-      .parameter-row:last-child { margin-bottom: 0; }
-
-      .row-label {
-        padding-right: 8px;
-        color: var(--text2);
-        font-size: 12px;
-        line-height: 18px;
-        font-weight: 400;
-        white-space: nowrap;
-      }
-
-      /* ── Compound field (slider + number) ───────────────────────── */
-      .compound-field {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 52px;
-        height: 30px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        overflow: hidden;
-        transition: border-color 0.12s;
-      }
-
-      .compound-field:focus-within {
-        border-color: var(--accent);
-      }
-
-      .range-wrap {
+      .param-row {
         display: flex;
         align-items: center;
-        padding: 0 10px;
+        justify-content: space-between;
+        min-height: 28px;
+        margin-bottom: 4px;
+        gap: 10px;
+      }
+
+      .param-label-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 88px;
+        flex-shrink: 0;
+      }
+
+      .param-label {
+        font-size: 11px;
+        color: var(--text-secondary);
+        font-weight: 400;
+      }
+
+      .slider-field {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         min-width: 0;
       }
 
-      /* Flat custom range */
+      /* ── Custom Range Slider ────────────────────────────────────── */
+      .range-track {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
       input[type="range"] {
         width: 100%;
-        min-width: 0;
-        height: 14px;
+        height: 16px;
         margin: 0;
         appearance: none;
+        -webkit-appearance: none;
         background: transparent;
         cursor: pointer;
       }
 
       input[type="range"]::-webkit-slider-runnable-track {
-        height: 2px;
-        border-radius: 1px;
+        height: 4px;
+        border-radius: 2px;
         background: linear-gradient(
           to right,
           var(--accent) 0%,
@@ -218,388 +294,654 @@
 
       input[type="range"]::-webkit-slider-thumb {
         appearance: none;
+        -webkit-appearance: none;
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: var(--accent);
-        border: 0;
-        margin-top: -5px;
-        transition: transform 0.1s;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        margin-top: -4px;
+        transition: transform 0.1s, background-color 0.1s;
       }
 
       input[type="range"]:hover::-webkit-slider-thumb {
-        transform: scale(1.2);
+        transform: scale(1.18);
       }
 
-      input[type="number"],
-      input[type="text"] {
-        min-width: 0;
+      input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.05);
+        background: var(--accent);
+      }
+
+      input[type="range"]:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ── Numeric Input Pill ─────────────────────────────────────── */
+      .number-pill {
+        width: 50px;
+        height: 24px;
+        flex-shrink: 0;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.12s;
+      }
+
+      .number-pill:focus-within {
+        border-color: var(--accent);
+      }
+
+      .number-pill input {
         width: 100%;
-        height: 28px;
-        padding: 0 8px;
-        border: 0;
-        border-left: 1px solid var(--border);
-        border-radius: 0;
-        outline: 0;
-        background: var(--surface2);
-        color: var(--text);
+        height: 100%;
+        padding: 0 4px;
+        text-align: center;
         font-size: 11px;
         font-weight: 500;
         font-variant-numeric: tabular-nums;
-        text-align: center;
+        color: var(--text);
       }
 
-      input[type="number"]::-webkit-inner-spin-button,
-      input[type="number"]::-webkit-outer-spin-button {
+      .number-pill input::-webkit-inner-spin-button,
+      .number-pill input::-webkit-outer-spin-button {
         appearance: none;
         margin: 0;
       }
 
-      /* ── Color rows ─────────────────────────────────────────────── */
-      .color-row {
-        display: grid;
-        grid-template-columns: 86px minmax(0, 1fr);
-        align-items: center;
-        min-height: 32px;
-        margin-bottom: 6px;
-      }
-
-      .color-row:last-child { margin-bottom: 0; }
-
-      .color-row .row-label {
+      /* ── Seed Group ─────────────────────────────────────────────── */
+      .seed-actions {
         display: flex;
         align-items: center;
-        gap: 6px;
-        white-space: nowrap;
-        overflow: hidden;
+        gap: 4px;
       }
 
-      .color-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        flex: 0 0 7px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-
-      .color-field {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 58px;
-        height: 30px;
-        border-radius: 6px;
+      .dice-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-subtle);
         border: 1px solid var(--border);
-        background: var(--surface);
-        overflow: hidden;
-        transition: border-color 0.12s;
-      }
-
-      .color-field:focus-within {
-        border-color: var(--accent);
-      }
-
-      .hex-field {
+        color: var(--text-secondary);
         display: grid;
-        grid-template-columns: 28px minmax(0, 1fr);
+        place-items: center;
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+
+      .dice-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .dice-btn:active {
+        transform: rotate(45deg);
+      }
+
+      .dice-btn svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ── Color Palette Row ──────────────────────────────────────── */
+      .color-row {
+        display: flex;
         align-items: center;
-        padding-left: 6px;
+        justify-content: space-between;
+        min-height: 30px;
+        margin-bottom: 5px;
+        gap: 8px;
+      }
+
+      .color-label-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
         min-width: 0;
       }
 
-      input[type="color"] {
-        width: 18px;
-        height: 18px;
-        padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 3px;
-        background: transparent;
+      .color-swatch-btn {
+        position: relative;
+        width: 20px;
+        height: 20px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         cursor: pointer;
+        overflow: hidden;
+        flex-shrink: 0;
+        /* Checkerboard pattern for opacity preview */
+        background-image:
+          linear-gradient(45deg, #888 25%, transparent 25%),
+          linear-gradient(-45deg, #888 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #888 75%),
+          linear-gradient(-45deg, transparent 75%, #888 75%);
+        background-size: 6px 6px;
+        background-position: 0 0, 0 3px, 3px -3px, -3px 0px;
+        transition: transform 0.1s, border-color 0.12s;
+      }
+
+      .color-swatch-btn:hover {
+        transform: scale(1.08);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .color-swatch-btn:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+
+      .color-swatch-fill {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .color-swatch-btn input[type="color"] {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        width: 40px;
+        height: 40px;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .color-name {
+        font-size: 11px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .color-inputs-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .hex-box {
+        width: 76px;
+        height: 24px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        padding: 0 6px;
+        gap: 3px;
         transition: border-color 0.12s;
       }
 
-      input[type="color"]:hover { border-color: rgba(255, 255, 255, 0.3); }
-
-      input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-      input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 2px; }
-
-      .hex-input {
-        width: 100%;
-        padding: 0 6px !important;
-        border-left: 0 !important;
-        text-transform: uppercase;
-        text-align: left !important;
-        letter-spacing: 0.04em !important;
-        font-size: 11px;
+      .hex-box:focus-within {
+        border-color: var(--accent);
       }
 
-      .alpha-field {
-        position: relative;
-        border-left: 1px solid var(--border);
-        background: var(--surface2);
-      }
-
-      .alpha-field input {
-        width: 100%;
-        padding: 0 18px 0 8px;
-        border-left: 0;
-        background: transparent;
-        text-align: left !important;
-      }
-
-      .alpha-field span {
-        position: absolute;
-        top: 50%;
-        right: 7px;
-        transform: translateY(-50%);
-        color: var(--text3);
+      .hex-prefix {
         font-size: 10px;
-        pointer-events: none;
+        color: var(--text-tertiary);
+        user-select: none;
       }
 
-      /* ── Footer ─────────────────────────────────────────────────── */
-      .footer {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
+      .hex-box input {
+        width: 100%;
+        height: 100%;
+        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: var(--text);
       }
 
-      .status-wrap { min-width: 0; }
-
-      .status-indicator {
+      .alpha-box {
+        position: relative;
+        width: 48px;
+        height: 24px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
         display: flex;
         align-items: center;
-        gap: 6px;
+        padding: 0 14px 0 6px;
+        transition: border-color 0.12s;
       }
 
-      .status-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #4ade80;
-        flex: 0 0 6px;
-        transition: background 0.2s;
+      .alpha-box:focus-within {
+        border-color: var(--accent);
       }
 
-      .status-dot.busy  { background: var(--accent); }
-      .status-dot.error { background: var(--error); }
-
-      .status {
-        font-size: 12px;
-        line-height: 16px;
+      .alpha-box input {
+        width: 100%;
+        height: 100%;
+        text-align: right;
+        font-size: 11px;
         font-weight: 500;
         color: var(--text);
       }
 
-      .status.error { color: var(--error); }
+      .alpha-box input::-webkit-inner-spin-button,
+      .alpha-box input::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
 
-      .status-detail {
-        display: none;
-        margin-top: 1px;
+      .alpha-suffix {
+        position: absolute;
+        right: 5px;
+        font-size: 9.5px;
+        color: var(--text-tertiary);
+        pointer-events: none;
+      }
+
+      /* ── Footer / CTA ───────────────────────────────────────────── */
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-top: 1px solid var(--border-subtle);
+        background: var(--bg);
+        margin-top: 4px;
+      }
+
+      .status-pill {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-bullet {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+      }
+
+      .status-bullet.busy {
+        background: var(--accent);
+        animation: pulse 1.2s infinite ease-in-out;
+      }
+
+      .status-bullet.error {
+        background: var(--error);
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.6; }
+      }
+
+      .status-text {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .status-text.error {
+        color: var(--error);
+      }
+
+      .status-caption {
+        font-size: 9.5px;
+        color: var(--text-tertiary);
         padding-left: 12px;
-        color: var(--text3);
-        font-size: 10px;
-        line-height: 13px;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        max-width: 140px;
       }
 
-      .status-detail.visible { display: block; }
-
-      /* ── Generate button ────────────────────────────────────────── */
-      .primary-button {
-        min-width: 84px;
-        height: 30px;
-        padding: 0 14px;
-        border: 0;
-        border-radius: 6px;
+      .primary-btn {
+        height: 32px;
+        padding: 0 16px;
         background: var(--accent);
-        color: #ffffff;
-        font-size: 12px;
+        color: var(--accent-text);
+        border-radius: var(--radius-md);
+        font-size: 11.5px;
         font-weight: 600;
         cursor: pointer;
-        transition: opacity 0.12s, background 0.12s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.12s, transform 0.1s;
+        flex-shrink: 0;
       }
 
-      .primary-button:hover:not(:disabled) {
-        background: #1aa3ff;
+      .primary-btn:hover:not(:disabled) {
+        background: var(--accent-hover);
       }
 
-      .primary-button:active:not(:disabled) {
-        opacity: 0.85;
+      .primary-btn:active:not(:disabled) {
+        transform: scale(0.97);
       }
 
-      .primary-button:focus-visible {
+      .primary-btn:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
       }
 
-      .primary-button:disabled {
-        background: var(--surface2);
-        color: var(--text3);
+      .primary-btn:disabled {
+        opacity: 0.55;
         cursor: wait;
+      }
+
+      .primary-btn svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
       }
     </style>
   </head>
   <body>
     <div class="app" id="app">
-
-      <!-- Titlebar -->
-      <header class="titlebar">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" stroke-width="1.7"/>
-            <rect x="14" y="3" width="7" height="7" rx="1.5" stroke-width="1.7"/>
-            <rect x="3" y="14" width="7" height="7" rx="1.5" stroke-width="1.7"/>
-            <rect x="14" y="14" width="7" height="7" rx="1.5" stroke-width="1.7"/>
-          </svg>
-        </div>
-
-        <div class="title-group">
-          <h1>Block Mosaic</h1>
-        </div>
-
-        <div class="titlebar-actions">
-          <button class="icon-button" id="randomize" type="button" title="Randomize pattern" aria-label="Randomize pattern">
-            <svg viewBox="0 0 24 24">
-              <path d="m14.5 5.5 4 4M4 20l2.1-5.3L16.7 4.1a1.4 1.4 0 0 1 2 0l1.2 1.2a1.4 1.4 0 0 1 0 2L9.3 17.9 4 20Z"/>
-              <path d="M6 3v4M4 5h4m11 10v5m-2.5-2.5h5"/>
-            </svg>
-          </button>
-
-          <button class="icon-button" id="close" type="button" title="Close plugin" aria-label="Close plugin">
-            <svg viewBox="0 0 24 24">
-              <path d="m5 5 14 14M19 5 5 19"/>
-            </svg>
-          </button>
-        </div>
-      </header>
-
-      <main>
-        <!-- Grid section -->
-        <section class="section" aria-labelledby="gridTitle">
-          <div class="section-header">
-            <h2 class="section-title" id="gridTitle">Grid</h2>
+      <!-- Live Interactive Mini-Preview -->
+      <div class="preview-container">
+        <div class="preview-card" id="previewCard" title="Click to randomize seed">
+          <canvas id="previewCanvas"></canvas>
+          <div class="preview-badge-left">
+            <span class="pulse-dot"></span>
+            <span id="previewBlockCount">0 blocks</span>
           </div>
+          <div class="preview-badge-right">Click to randomize 🎲</div>
+        </div>
+      </div>
 
-          <div class="parameter-row">
-            <label class="row-label" for="cellSizeRange">Cell size</label>
-            <div class="compound-field">
-              <div class="range-wrap">
-                <input id="cellSizeRange" type="range" min="8" max="80" step="1" value="24" />
-              </div>
+      <!-- Aesthetic Presets -->
+      <div class="presets-bar" id="presetsBar">
+        <button class="preset-chip active" type="button" data-preset="swiss">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#ffffff;"></span>
+            <span class="preset-color-dot" style="background:#d0d0d0;"></span>
+            <span class="preset-color-dot" style="background:#e03030;"></span>
+          </span>
+          Swiss
+        </button>
+        <button class="preset-chip" type="button" data-preset="obsidian">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#111318;"></span>
+            <span class="preset-color-dot" style="background:#283040;"></span>
+            <span class="preset-color-dot" style="background:#00d2ff;"></span>
+          </span>
+          Obsidian
+        </button>
+        <button class="preset-chip" type="button" data-preset="bauhaus">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#f4f1ea;"></span>
+            <span class="preset-color-dot" style="background:#2b2d42;"></span>
+            <span class="preset-color-dot" style="background:#f4a261;"></span>
+          </span>
+          Bauhaus
+        </button>
+        <button class="preset-chip" type="button" data-preset="cyber">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#0e0719;"></span>
+            <span class="preset-color-dot" style="background:#2b1b4a;"></span>
+            <span class="preset-color-dot" style="background:#ff007f;"></span>
+          </span>
+          Cyber
+        </button>
+        <button class="preset-chip" type="button" data-preset="mono">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#ffffff;"></span>
+            <span class="preset-color-dot" style="background:#d4d4d8;"></span>
+            <span class="preset-color-dot" style="background:#18181b;"></span>
+          </span>
+          Mono
+        </button>
+        <button class="preset-chip" type="button" data-preset="sage">
+          <span class="preset-palette">
+            <span class="preset-color-dot" style="background:#f5f7f5;"></span>
+            <span class="preset-color-dot" style="background:#c8d6cf;"></span>
+            <span class="preset-color-dot" style="background:#2d6a4f;"></span>
+          </span>
+          Sage
+        </button>
+      </div>
+
+      <!-- Geometry Section -->
+      <div class="section-header">
+        <span class="section-label">Geometry</span>
+      </div>
+
+      <div class="control-group">
+        <!-- Cell Size -->
+        <div class="param-row">
+          <div class="param-label-wrap">
+            <label class="param-label" for="cellSizeRange">Cell size</label>
+          </div>
+          <div class="slider-field">
+            <div class="range-track">
+              <input id="cellSizeRange" type="range" min="8" max="80" step="1" value="24" />
+            </div>
+            <div class="number-pill">
               <input id="cellSize" type="number" min="8" max="80" step="1" value="24" aria-label="Cell size value" />
             </div>
           </div>
+        </div>
 
-          <div class="parameter-row">
-            <label class="row-label" for="densityRange">Fill density</label>
-            <div class="compound-field">
-              <div class="range-wrap">
-                <input id="densityRange" type="range" min="0.02" max="0.8" step="0.01" value="0.2" />
-              </div>
-              <input id="density" type="number" min="0.02" max="0.8" step="0.01" value="0.2" aria-label="Fill density value" />
+        <!-- Fill Density -->
+        <div class="param-row">
+          <div class="param-label-wrap">
+            <label class="param-label" for="densityRange">Density</label>
+          </div>
+          <div class="slider-field">
+            <div class="range-track">
+              <input id="densityRange" type="range" min="0.02" max="0.8" step="0.01" value="0.2" />
+            </div>
+            <div class="number-pill">
+              <input id="density" type="number" min="0.02" max="0.8" step="0.01" value="0.2" aria-label="Density value" />
             </div>
           </div>
+        </div>
 
-          <div class="parameter-row">
-            <label class="row-label" for="accentRatioRange">Accent ratio</label>
-            <div class="compound-field">
-              <div class="range-wrap">
-                <input id="accentRatioRange" type="range" min="0" max="1" step="0.01" value="0.2" />
-              </div>
+        <!-- Accent Ratio -->
+        <div class="param-row">
+          <div class="param-label-wrap">
+            <label class="param-label" for="accentRatioRange">Accent</label>
+          </div>
+          <div class="slider-field">
+            <div class="range-track">
+              <input id="accentRatioRange" type="range" min="0" max="1" step="0.01" value="0.2" />
+            </div>
+            <div class="number-pill">
               <input id="accentRatio" type="number" min="0" max="1" step="0.01" value="0.2" aria-label="Accent ratio value" />
             </div>
           </div>
-
-          <div class="parameter-row">
-            <label class="row-label" for="seedRange">Seed</label>
-            <div class="compound-field">
-              <div class="range-wrap">
-                <input id="seedRange" type="range" min="0" max="999" step="1" value="42" />
-              </div>
-              <input id="seed" type="number" min="0" max="999" step="1" value="42" aria-label="Seed value" />
-            </div>
-          </div>
-        </section>
-
-        <!-- Colors section -->
-        <section class="section" aria-labelledby="colorsTitle">
-          <div class="section-header">
-            <h2 class="section-title" id="colorsTitle">Colors</h2>
-          </div>
-
-          <div class="color-row" data-color="bgColor">
-            <label class="row-label" for="bgColorHex">
-              <span class="color-dot" style="background:#ffffff;"></span>Background
-            </label>
-            <div class="color-field">
-              <div class="hex-field">
-                <input id="bgColorPicker" type="color" value="#ffffff" aria-label="Background color picker" />
-                <input class="hex-input" id="bgColorHex" type="text" value="FFFFFF" maxlength="6" spellcheck="false" aria-label="Background hex color" />
-              </div>
-              <div class="alpha-field">
-                <input id="bgColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Background opacity" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="color-row" data-color="neutralColor">
-            <label class="row-label" for="neutralColorHex">
-              <span class="color-dot" style="background:#d0d0d0;"></span>Neutral
-            </label>
-            <div class="color-field">
-              <div class="hex-field">
-                <input id="neutralColorPicker" type="color" value="#d0d0d0" aria-label="Neutral color picker" />
-                <input class="hex-input" id="neutralColorHex" type="text" value="D0D0D0" maxlength="6" spellcheck="false" aria-label="Neutral hex color" />
-              </div>
-              <div class="alpha-field">
-                <input id="neutralColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Neutral opacity" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="color-row" data-color="accentColor">
-            <label class="row-label" for="accentColorHex">
-              <span class="color-dot" style="background:#e03030;"></span>Accent
-            </label>
-            <div class="color-field">
-              <div class="hex-field">
-                <input id="accentColorPicker" type="color" value="#e03030" aria-label="Accent color picker" />
-                <input class="hex-input" id="accentColorHex" type="text" value="E03030" maxlength="6" spellcheck="false" aria-label="Accent hex color" />
-              </div>
-              <div class="alpha-field">
-                <input id="accentColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Accent opacity" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <!-- Footer -->
-      <footer class="footer">
-        <div class="status-wrap">
-          <div class="status-indicator">
-            <div class="status-dot" id="statusDot"></div>
-            <p class="status" id="status">Ready</p>
-          </div>
-          <p class="status-detail" id="statusDetail"></p>
         </div>
-        <button class="primary-button" id="generate" type="button">Generate</button>
+
+        <!-- Seed -->
+        <div class="param-row">
+          <div class="param-label-wrap">
+            <label class="param-label" for="seedRange">Seed</label>
+          </div>
+          <div class="slider-field">
+            <div class="range-track">
+              <input id="seedRange" type="range" min="0" max="999" step="1" value="42" />
+            </div>
+            <div class="seed-actions">
+              <div class="number-pill">
+                <input id="seed" type="number" min="0" max="999" step="1" value="42" aria-label="Seed value" />
+              </div>
+              <button class="dice-btn" id="rollSeed" type="button" title="Roll random seed" aria-label="Roll random seed">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="3"/>
+                  <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                  <circle cx="16" cy="8" r="1.5" fill="currentColor"/>
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                  <circle cx="8" cy="16" r="1.5" fill="currentColor"/>
+                  <circle cx="16" cy="16" r="1.5" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Palette Section -->
+      <div class="section-header">
+        <span class="section-label">Palette</span>
+      </div>
+
+      <div class="control-group">
+        <!-- Background Color -->
+        <div class="color-row" data-color="bgColor">
+          <div class="color-label-wrap">
+            <div class="color-swatch-btn" id="bgColorSwatch" title="Pick background color">
+              <div class="color-swatch-fill" id="bgColorDot" style="background:#ffffff;"></div>
+              <input id="bgColorPicker" type="color" value="#ffffff" aria-label="Background color picker" />
+            </div>
+            <label class="color-name" for="bgColorHex">Background</label>
+          </div>
+          <div class="color-inputs-wrap">
+            <div class="hex-box">
+              <span class="hex-prefix">#</span>
+              <input id="bgColorHex" type="text" value="FFFFFF" maxlength="6" spellcheck="false" aria-label="Background hex code" />
+            </div>
+            <div class="alpha-box">
+              <input id="bgColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Background opacity" />
+              <span class="alpha-suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neutral Blocks Color -->
+        <div class="color-row" data-color="neutralColor">
+          <div class="color-label-wrap">
+            <div class="color-swatch-btn" id="neutralColorSwatch" title="Pick neutral color">
+              <div class="color-swatch-fill" id="neutralColorDot" style="background:#d0d0d0;"></div>
+              <input id="neutralColorPicker" type="color" value="#d0d0d0" aria-label="Neutral color picker" />
+            </div>
+            <label class="color-name" for="neutralColorHex">Neutral</label>
+          </div>
+          <div class="color-inputs-wrap">
+            <div class="hex-box">
+              <span class="hex-prefix">#</span>
+              <input id="neutralColorHex" type="text" value="D0D0D0" maxlength="6" spellcheck="false" aria-label="Neutral hex code" />
+            </div>
+            <div class="alpha-box">
+              <input id="neutralColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Neutral opacity" />
+              <span class="alpha-suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accent Blocks Color -->
+        <div class="color-row" data-color="accentColor">
+          <div class="color-label-wrap">
+            <div class="color-swatch-btn" id="accentColorSwatch" title="Pick accent color">
+              <div class="color-swatch-fill" id="accentColorDot" style="background:#e03030;"></div>
+              <input id="accentColorPicker" type="color" value="#e03030" aria-label="Accent color picker" />
+            </div>
+            <label class="color-name" for="accentColorHex">Accent</label>
+          </div>
+          <div class="color-inputs-wrap">
+            <div class="hex-box">
+              <span class="hex-prefix">#</span>
+              <input id="accentColorHex" type="text" value="E03030" maxlength="6" spellcheck="false" aria-label="Accent hex code" />
+            </div>
+            <div class="alpha-box">
+              <input id="accentColorAlpha" type="number" min="0" max="100" step="1" value="100" aria-label="Accent opacity" />
+              <span class="alpha-suffix">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <footer class="footer">
+        <div class="status-pill">
+          <div class="status-row">
+            <span class="status-bullet" id="statusBullet"></span>
+            <span class="status-text" id="status">Ready</span>
+          </div>
+          <span class="status-caption" id="statusDetail">Creates a new 600 × 600 frame</span>
+        </div>
+        <button class="primary-btn" id="generate" type="button">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          <span id="generateBtnText">Generate</span>
+        </button>
       </footer>
     </div>
 
     <script>
-      /* Slider fill ------------------------------------------------ */
+      /* ── Preset Data ────────────────────────────────────────────── */
+      const PRESETS = {
+        swiss: {
+          bgColor: { r: 1, g: 1, b: 1, a: 1 },
+          neutralColor: { r: 0.816, g: 0.816, b: 0.816, a: 1 },
+          accentColor: { r: 0.878, g: 0.188, b: 0.188, a: 1 },
+        },
+        obsidian: {
+          bgColor: { r: 0.067, g: 0.075, b: 0.094, a: 1 },
+          neutralColor: { r: 0.157, g: 0.188, b: 0.251, a: 1 },
+          accentColor: { r: 0, g: 0.824, b: 1, a: 1 },
+        },
+        bauhaus: {
+          bgColor: { r: 0.957, g: 0.945, b: 0.918, a: 1 },
+          neutralColor: { r: 0.169, g: 0.176, b: 0.259, a: 1 },
+          accentColor: { r: 0.957, g: 0.635, b: 0.380, a: 1 },
+        },
+        cyber: {
+          bgColor: { r: 0.055, g: 0.027, b: 0.098, a: 1 },
+          neutralColor: { r: 0.169, g: 0.106, b: 0.290, a: 1 },
+          accentColor: { r: 1, g: 0, b: 0.498, a: 1 },
+        },
+        mono: {
+          bgColor: { r: 1, g: 1, b: 1, a: 1 },
+          neutralColor: { r: 0.831, g: 0.831, b: 0.847, a: 1 },
+          accentColor: { r: 0.094, g: 0.094, b: 0.106, a: 1 },
+        },
+        sage: {
+          bgColor: { r: 0.961, g: 0.969, b: 0.961, a: 1 },
+          neutralColor: { r: 0.784, g: 0.839, b: 0.812, a: 1 },
+          accentColor: { r: 0.176, g: 0.416, b: 0.310, a: 1 },
+        },
+      };
+
+      /* ── Sliders Logic ──────────────────────────────────────────── */
       function updateSliderFill(input) {
-        var min = parseFloat(input.min) || 0;
-        var max = parseFloat(input.max) || 100;
-        var val = parseFloat(input.value) || 0;
-        var pct = ((val - min) / (max - min)) * 100;
+        const min = parseFloat(input.min) || 0;
+        const max = parseFloat(input.max) || 100;
+        const val = parseFloat(input.value) || 0;
+        const pct = ((val - min) / (max - min)) * 100;
         input.style.setProperty("--pct", pct.toFixed(1));
       }
 
@@ -608,7 +950,150 @@
         r.addEventListener("input", function() { updateSliderFill(r); });
       });
 
-      /* Controls -------------------------------------------------- */
+      /* ── Fast In-Memory Mosaic Math for Live Preview ────────────── */
+      function hash2d(x, y, seed) {
+        let hash = (x * 374761393 + y * 668265263 + seed * 1274126177) | 0;
+        hash = Math.imul(hash ^ (hash >>> 13), 1103515245);
+        hash = Math.imul(hash ^ (hash >>> 16), 2654435769);
+        return ((hash ^ (hash >>> 13)) >>> 0) / 4294967296;
+      }
+
+      function densityNoise(cellX, cellY, seed) {
+        const scale = 0.07;
+        const scaledX = cellX * scale;
+        const scaledY = cellY * scale;
+        const integerX = Math.floor(scaledX);
+        const integerY = Math.floor(scaledY);
+        const fractionX = scaledX - integerX;
+        const fractionY = scaledY - integerY;
+        const topLeft = hash2d(integerX, integerY, seed + 7777);
+        const topRight = hash2d(integerX + 1, integerY, seed + 7777);
+        const bottomLeft = hash2d(integerX, integerY + 1, seed + 7777);
+        const bottomRight = hash2d(integerX + 1, integerY + 1, seed + 7777);
+        const smoothX = fractionX * fractionX * (3 - 2 * fractionX);
+        const smoothY = fractionY * fractionY * (3 - 2 * fractionY);
+
+        return (
+          topLeft * (1 - smoothX) * (1 - smoothY) +
+          topRight * smoothX * (1 - smoothY) +
+          bottomLeft * (1 - smoothX) * smoothY +
+          bottomRight * smoothX * smoothY
+        );
+      }
+
+      function generateBlocksData(columns, rows, cellSize, density, accentRatio, seed) {
+        const filled = Array.from({ length: columns }, () => Array(rows).fill(false));
+        const blocks = [];
+        const maxBlocks = 2500;
+
+        for (let cellX = 0; cellX < columns - 1 && blocks.length < maxBlocks; cellX += 2) {
+          for (let cellY = 0; cellY < rows - 1 && blocks.length < maxBlocks; cellY += 2) {
+            const localDensity = densityNoise(cellX, cellY, seed);
+            const threshold = density * 1.8 * localDensity;
+            if (hash2d(cellX, cellY, seed + 3333) < threshold * 0.25) {
+              filled[cellX][cellY] = true;
+              filled[cellX + 1][cellY] = true;
+              filled[cellX][cellY + 1] = true;
+              filled[cellX + 1][cellY + 1] = true;
+              blocks.push({
+                x: cellX * cellSize,
+                y: cellY * cellSize,
+                width: cellSize * 2,
+                height: cellSize * 2,
+                isAccent: hash2d(cellX, cellY, seed + 5555) < accentRatio,
+              });
+            }
+          }
+        }
+
+        for (let cellX = 0; cellX < columns && blocks.length < maxBlocks; cellX += 1) {
+          for (let cellY = 0; cellY < rows && blocks.length < maxBlocks; cellY += 1) {
+            if (filled[cellX][cellY]) continue;
+            const localDensity = densityNoise(cellX, cellY, seed);
+            const threshold = density * 1.5 * localDensity;
+            if (hash2d(cellX, cellY, seed) < threshold) {
+              filled[cellX][cellY] = true;
+              blocks.push({
+                x: cellX * cellSize,
+                y: cellY * cellSize,
+                width: cellSize,
+                height: cellSize,
+                isAccent: hash2d(cellX, cellY, seed + 9999) < accentRatio,
+              });
+            }
+          }
+        }
+
+        return blocks;
+      }
+
+      /* ── Preview Canvas Rendering ───────────────────────────────── */
+      const previewCanvas = document.getElementById("previewCanvas");
+      const previewCtx = previewCanvas.getContext("2d");
+      const previewBlockCount = document.getElementById("previewBlockCount");
+
+      function rgbaString(color) {
+        const r = Math.round(clamp(color.r, 0, 1) * 255);
+        const g = Math.round(clamp(color.g, 0, 1) * 255);
+        const b = Math.round(clamp(color.b, 0, 1) * 255);
+        const a = clamp(color.a != null ? color.a : 1, 0, 1);
+        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+      }
+
+      let renderPreviewRaf = 0;
+      function renderMiniPreview() {
+        if (renderPreviewRaf) cancelAnimationFrame(renderPreviewRaf);
+        renderPreviewRaf = requestAnimationFrame(function() {
+          renderPreviewRaf = 0;
+          const rect = previewCanvas.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          const width = Math.round(rect.width * dpr);
+          const height = Math.round(rect.height * dpr);
+
+          if (width === 0 || height === 0) return;
+          if (previewCanvas.width !== width || previewCanvas.height !== height) {
+            previewCanvas.width = width;
+            previewCanvas.height = height;
+          }
+
+          const params = currentParams();
+          previewCtx.clearRect(0, 0, width, height);
+
+          // Fill background
+          previewCtx.fillStyle = rgbaString(params.bgColor);
+          previewCtx.fillRect(0, 0, width, height);
+
+          // Preview uses scaled cell size so patterns look faithful
+          const scale = width / 600;
+          const cellSize = Math.max(3, Math.round(params.cellSize * scale));
+          const columns = Math.ceil(width / cellSize);
+          const rows = Math.ceil(height / cellSize);
+
+          const blocks = generateBlocksData(
+            columns,
+            rows,
+            cellSize,
+            params.density,
+            params.accentRatio,
+            params.seed
+          );
+
+          const neutralStyle = rgbaString(params.neutralColor);
+          const accentStyle = rgbaString(params.accentColor);
+
+          for (let i = 0; i < blocks.length; i++) {
+            const b = blocks[i];
+            previewCtx.fillStyle = b.isAccent ? accentStyle : neutralStyle;
+            previewCtx.fillRect(b.x, b.y, b.width, b.height);
+          }
+
+          if (previewBlockCount) {
+            previewBlockCount.textContent = blocks.length + " blocks";
+          }
+        });
+      }
+
+      /* ── Controls Map ───────────────────────────────────────────── */
       const numericControls = {
         cellSize:    { range: document.getElementById("cellSizeRange"),    number: document.getElementById("cellSize"),    min: 8,    max: 80,  fallback: 24,  integer: true  },
         density:     { range: document.getElementById("densityRange"),     number: document.getElementById("density"),     min: 0.02, max: 0.8, fallback: 0.2, integer: false },
@@ -617,15 +1102,16 @@
       };
 
       const colorControls = {
-        bgColor:      { picker: document.getElementById("bgColorPicker"),      hex: document.getElementById("bgColorHex"),      alpha: document.getElementById("bgColorAlpha"),      fallback: "FFFFFF" },
-        neutralColor: { picker: document.getElementById("neutralColorPicker"), hex: document.getElementById("neutralColorHex"), alpha: document.getElementById("neutralColorAlpha"), fallback: "D0D0D0" },
-        accentColor:  { picker: document.getElementById("accentColorPicker"),  hex: document.getElementById("accentColorHex"),  alpha: document.getElementById("accentColorAlpha"),  fallback: "E03030" },
+        bgColor:      { dot: document.getElementById("bgColorDot"),      picker: document.getElementById("bgColorPicker"),      hex: document.getElementById("bgColorHex"),      alpha: document.getElementById("bgColorAlpha"),      fallback: "FFFFFF" },
+        neutralColor: { dot: document.getElementById("neutralColorDot"), picker: document.getElementById("neutralColorPicker"), hex: document.getElementById("neutralColorHex"), alpha: document.getElementById("neutralColorAlpha"), fallback: "D0D0D0" },
+        accentColor:  { dot: document.getElementById("accentColorDot"),  picker: document.getElementById("accentColorPicker"),  hex: document.getElementById("accentColorHex"),  alpha: document.getElementById("accentColorAlpha"),  fallback: "E03030" },
       };
 
       const generateButton = document.getElementById("generate");
+      const generateBtnText = document.getElementById("generateBtnText");
       const status         = document.getElementById("status");
       const statusDetail   = document.getElementById("statusDetail");
-      const statusDot      = document.getElementById("statusDot");
+      const statusBullet   = document.getElementById("statusBullet");
       let canLiveUpdate    = false;
       let liveTimer        = 0;
 
@@ -658,6 +1144,16 @@
         return channel(color.r) + channel(color.g) + channel(color.b);
       }
 
+      function updateColorDot(control) {
+        if (!control || !control.dot) return;
+        const hex   = normalizeHex(control.hex.value, control.fallback);
+        const alpha = clamp(Number(control.alpha.value) || 0, 0, 100) / 100;
+        const r     = Number.parseInt(hex.slice(0, 2), 16);
+        const g     = Number.parseInt(hex.slice(2, 4), 16);
+        const b     = Number.parseInt(hex.slice(4, 6), 16);
+        control.dot.style.background = "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+      }
+
       function currentParams() {
         return {
           cellSize:     normalizeNumber(numericControls.cellSize,    numericControls.cellSize.number.value),
@@ -676,21 +1172,25 @@
         status.textContent = label;
         status.classList.toggle("error", isError);
         statusDetail.textContent = detail;
-        statusDetail.classList.toggle("visible", Boolean(detail));
-        statusDot.classList.remove("busy", "error");
-        if (isError) statusDot.classList.add("error");
-        else if (label === "Updating\u2026" || label === "Generating\u2026") statusDot.classList.add("busy");
+        statusBullet.className = "status-bullet";
+        if (isError) statusBullet.classList.add("error");
+        else if (label === "Updating…" || label === "Generating…") statusBullet.classList.add("busy");
       }
 
       function scheduleLiveUpdate() {
+        renderMiniPreview();
         window.clearTimeout(liveTimer);
-        if (!canLiveUpdate) { setStatus("Ready"); return; }
-        setStatus("Updating\u2026");
+        if (!canLiveUpdate) {
+          setStatus("Ready");
+          return;
+        }
+        setStatus("Updating…");
         liveTimer = window.setTimeout(function() {
           parent.postMessage({ pluginMessage: { type: "live-update", params: currentParams() } }, "*");
         }, 90);
       }
 
+      /* ── Input Event Bindings ───────────────────────────────────── */
       for (const control of Object.values(numericControls)) {
         control.range.addEventListener("input", function() {
           control.number.value = control.range.value;
@@ -714,23 +1214,30 @@
       for (const control of Object.values(colorControls)) {
         control.picker.addEventListener("input", function() {
           control.hex.value = control.picker.value.slice(1).toUpperCase();
+          updateColorDot(control);
           scheduleLiveUpdate();
         });
         control.hex.addEventListener("input", function() {
           control.hex.value = control.hex.value.replace(/[^0-9a-f]/gi, "").slice(0, 6).toUpperCase();
           if (/^[0-9A-F]{6}$/.test(control.hex.value)) {
             control.picker.value = "#" + control.hex.value.toLowerCase();
+            updateColorDot(control);
             scheduleLiveUpdate();
           }
         });
         control.hex.addEventListener("change", function() {
           control.hex.value    = normalizeHex(control.hex.value, control.fallback);
           control.picker.value = "#" + control.hex.value.toLowerCase();
+          updateColorDot(control);
           scheduleLiveUpdate();
         });
-        control.alpha.addEventListener("input", scheduleLiveUpdate);
+        control.alpha.addEventListener("input", function() {
+          updateColorDot(control);
+          scheduleLiveUpdate();
+        });
         control.alpha.addEventListener("change", function() {
           control.alpha.value = String(Math.round(clamp(Number(control.alpha.value) || 0, 0, 100)));
+          updateColorDot(control);
           scheduleLiveUpdate();
         });
       }
@@ -751,10 +1258,28 @@
           control.hex.value    = hex;
           control.picker.value = "#" + hex.toLowerCase();
           control.alpha.value  = String(Math.round(clamp(Number(color.a != null ? color.a : 1), 0, 1) * 100));
+          updateColorDot(control);
         }
+        renderMiniPreview();
       }
 
-      document.getElementById("randomize").addEventListener("click", function() {
+      /* ── Preset Chips Handling ──────────────────────────────────── */
+      document.getElementById("presetsBar").addEventListener("click", function(e) {
+        const chip = e.target.closest(".preset-chip");
+        if (!chip) return;
+        document.querySelectorAll(".preset-chip").forEach(function(c) { c.classList.remove("active"); });
+        chip.classList.add("active");
+
+        const presetKey = chip.getAttribute("data-preset");
+        const preset = PRESETS[presetKey];
+        if (preset) {
+          setPanelParams(preset);
+          scheduleLiveUpdate();
+        }
+      });
+
+      /* ── Randomizer Buttons ─────────────────────────────────────── */
+      function randomizeSeed() {
         const randomValues = new Uint32Array(1);
         crypto.getRandomValues(randomValues);
         const nextSeed = randomValues[0] % 1000;
@@ -762,19 +1287,19 @@
         numericControls.seed.number.value = String(nextSeed);
         updateSliderFill(numericControls.seed.range);
         scheduleLiveUpdate();
-      });
+      }
 
-      document.getElementById("close").addEventListener("click", function() {
-        parent.postMessage({ pluginMessage: { type: "close" } }, "*");
-      });
+      document.getElementById("rollSeed").addEventListener("click", randomizeSeed);
+      document.getElementById("previewCard").addEventListener("click", randomizeSeed);
 
       generateButton.addEventListener("click", function() {
         window.clearTimeout(liveTimer);
         generateButton.disabled = true;
-        setStatus("Generating\u2026");
+        setStatus("Generating…");
         parent.postMessage({ pluginMessage: { type: "generate", params: currentParams() } }, "*");
       });
 
+      /* ── Messages from Figma Controller ─────────────────────────── */
       window.addEventListener("message", function(event) {
         const message = event.data && event.data.pluginMessage;
         if (!message) return;
@@ -787,31 +1312,51 @@
         if (message.type === "action-state") {
           canLiveUpdate           = Boolean(message.canLiveUpdate);
           generateButton.disabled = Boolean(message.busy);
-          generateButton.textContent = message.busy ? "Working\u2026" : (message.buttonLabel || "Generate");
-          setStatus(message.busy ? "Updating\u2026" : message.status, message.busy ? "" : message.detail);
+          generateBtnText.textContent = message.busy ? "Working…" : (message.buttonLabel || "Generate");
+          setStatus(message.busy ? "Updating…" : message.status, message.busy ? "" : message.detail);
           return;
         }
 
         if (message.type === "generation-complete") {
-          statusDot.classList.remove("busy", "error");
-          setStatus(message.live ? "Live" : "Ready", message.blockCount + " blocks");
+          statusBullet.className = "status-bullet";
+          setStatus(message.live ? "Live frame" : "Ready", message.blockCount + " blocks created");
+          renderMiniPreview();
           return;
         }
 
         if (message.type === "plugin-error") {
-          setStatus("Could not generate", message.message || "Unknown error", true);
+          setStatus("Error", message.message || "Unknown error", true);
         }
       });
 
+      /* ── Auto Resize Handling ───────────────────────────────────── */
+      let resizeTimer = 0;
       function reportHeight() {
-        const height = Math.ceil(document.getElementById("app").getBoundingClientRect().height);
-        parent.postMessage({ pluginMessage: { type: "resize", height: height } }, "*");
+        if (resizeTimer) cancelAnimationFrame(resizeTimer);
+        resizeTimer = requestAnimationFrame(function() {
+          resizeTimer = 0;
+          const app = document.getElementById("app");
+          if (!app) return;
+          const height = Math.ceil(app.getBoundingClientRect().height);
+          parent.postMessage({ pluginMessage: { type: "resize", height: height } }, "*");
+        });
       }
 
       if (typeof ResizeObserver !== "undefined") {
         new ResizeObserver(reportHeight).observe(document.getElementById("app"));
       }
-      requestAnimationFrame(reportHeight);
+
+      window.addEventListener("load", function() {
+        renderMiniPreview();
+        reportHeight();
+      });
+
+      // Initial render & sync
+      for (const control of Object.values(colorControls)) {
+        updateColorDot(control);
+      }
+      renderMiniPreview();
+      reportHeight();
     </script>
   </body>
 </html>

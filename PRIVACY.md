@@ -10,4 +10,4 @@ To make generated mosaics editable later, the plugin stores the selected mosaic 
 
 If the plugin's behavior changes in a future release, this policy should be updated before that release is published.
 
-For privacy or support questions, contact: **TODO: add your support email or URL before publishing.**
+For privacy or support questions, contact: https://github.com/nurfarhad/figma-block-mosaic/issues

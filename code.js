@@ -208,7 +208,9 @@ function buildMosaicFrame(params, width, height) {
 function replaceMosaicContents(target, source) {
   const previousChildren = [...target.children];
   target.fills = source.fills;
-  target.clipsContent = true;
+  if (target.clipsContent === undefined) {
+    target.clipsContent = true;
+  }
 
   for (const child of previousChildren) child.remove();
   for (const child of [...source.children]) target.appendChild(child);
@@ -257,8 +259,8 @@ async function runGenerate(paramsInput, options = {}) {
 
   let generatedFrame = null;
   try {
-    const width = target ? target.width : DEFAULT_SIZE;
-    const height = target ? target.height : DEFAULT_SIZE;
+    const width = Math.max(1, target ? target.width : DEFAULT_SIZE);
+    const height = Math.max(1, target ? target.height : DEFAULT_SIZE);
     const result = buildMosaicFrame(latestParams, width, height);
     generatedFrame = result.frame;
 

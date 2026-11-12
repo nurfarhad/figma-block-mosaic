@@ -40,12 +40,12 @@ Block Mosaic does not collect, store externally, or transmit user data. It makes
 
 ## Support
 
-- Support contact: `TODO: your email address or support URL`
-- Source and issue tracker: `TODO: your GitHub repository URL`
+- Support contact: `https://github.com/nurfarhad/figma-block-mosaic/issues`
+- Source and issue tracker: `https://github.com/nurfarhad/figma-block-mosaic`
 
 ## Publisher
 
-`TODO: your name, team, or organization`
+`Nur Farhad`
 
 ## Upload files
 

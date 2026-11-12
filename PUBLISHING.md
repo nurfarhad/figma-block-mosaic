@@ -54,7 +54,7 @@ Create an empty repository on GitHub without adding a README or license, then ru
 ```sh
 git add .
 git commit -m "Initial release of Block Mosaic"
-git remote add origin https://github.com/YOUR_USERNAME/block-mosaic.git
+git remote add origin https://github.com/nurfarhad/figma-block-mosaic.git
 git push -u origin main
 ```
 
