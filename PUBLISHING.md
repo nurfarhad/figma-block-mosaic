@@ -40,6 +40,7 @@ The plugin does not process data outside the current Figma document, so `PRIVACY
 5. Upload:
    - `assets/plugin-icon-128.png` as the icon.
    - `assets/community-cover-1920x1080.png` as the thumbnail.
+   - `assets/gallery-02` to `gallery-05` as carousel images, after the cover.
 6. Choose **Design tools** (or the closest available pattern/generative-art category).
 7. Add your support contact and complete the security disclosure accurately.
 8. Confirm network access is shown as **No access to network**.

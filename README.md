@@ -4,6 +4,17 @@ Block Mosaic is a no-network Figma plugin that generates deterministic geometric
 
 ![Block Mosaic Community cover](assets/community-cover-1920x1080.png)
 
+<table>
+  <tr>
+    <td><img src="assets/gallery-02-how-it-works.png" alt="How Block Mosaic works in three steps" /></td>
+    <td><img src="assets/gallery-03-controls.png" alt="What each of the four sliders does" /></td>
+  </tr>
+  <tr>
+    <td><img src="assets/gallery-04-presets.png" alt="The six built-in colour presets" /></td>
+    <td><img src="assets/gallery-05-use-cases.png" alt="Mosaics used on a website, poster, post and wallpaper" /></td>
+  </tr>
+</table>
+
 ## Features
 
 - Live updates directly on the selected Figma canvas frame

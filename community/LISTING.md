@@ -51,6 +51,7 @@ Block Mosaic does not collect, store externally, or transmit user data. It makes
 
 - Icon: `assets/plugin-icon-128.png`
 - Thumbnail: `assets/community-cover-1920x1080.png`
+- Carousel images, in this order: `assets/community-cover-1920x1080.png`, `assets/gallery-02-how-it-works.png`, `assets/gallery-03-controls.png`, `assets/gallery-04-presets.png`, `assets/gallery-05-use-cases.png`
 
 ## Final checklist
 
