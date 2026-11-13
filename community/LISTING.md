@@ -4,17 +4,17 @@
 
 Block Mosaic
 
-## Tagline
+## Tagline (max 50 characters)
 
-Generate repeatable geometric mosaics with flexible colors and density.
+Seeded geometric mosaics as editable layers
 
-## Suggested category
+## Category
 
 Design tools
 
 ## Description
 
-Create crisp, editable block mosaics directly in Figma.
+Generate geometric mosaics in one click, made of real, editable Figma rectangles.
 
 Block Mosaic turns a few simple controls into deterministic geometric patterns. Tune the cell size and fill density, choose how often the accent color appears, and use a numeric seed to reproduce the same arrangement whenever you need it.
 
@@ -24,13 +24,18 @@ Block Mosaic turns a few simple controls into deterministic geometric patterns. 
 - Fill density
 - Accent ratio
 - Pattern seed
-- Background, neutral, and accent colors
+- Background, neutral, and accent colors (hex and opacity)
+- Six presets: Swiss, Obsidian, Bauhaus, Cyber, Mono and Sage
 
 Click **Generate** to create a new 600 × 600 frame. Once generated, every control updates the selected mosaic live on the Figma canvas. Use the wand button to randomize the seed instantly. To revise a result later, select a mosaic made by the plugin and reopen Block Mosaic. You can resize the frame before changing a setting to regenerate the pattern at the new dimensions.
 
 Every block is a native Figma rectangle, so the result remains editable. Block Mosaic works entirely inside Figma and needs no account or network connection.
 
-## Suggested tags
+Great for website backgrounds, posters, social posts, slides and wallpapers.
+
+Free and open source: https://github.com/nurfarhad/figma-block-mosaic
+
+## Tags
 
 `mosaic`, `pattern`, `geometric`, `generative`, `grid`, `background`, `texture`, `abstract`, `blocks`, `artwork`, `layout`, `design tools`
 
@@ -55,7 +60,6 @@ Block Mosaic does not collect, store externally, or transmit user data. It makes
 
 ## Final checklist
 
-- [ ] Replace all TODO values above.
 - [ ] Test creating and updating mosaics in the latest Figma desktop app.
 - [ ] Test with no selection, an ordinary frame selected, and a generated mosaic selected.
 - [ ] Confirm the permanent Figma plugin ID is in `manifest.json`.

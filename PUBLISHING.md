@@ -21,15 +21,9 @@ The `id` in this repository is a local placeholder. Figma assigns the permanent 
 
 Do not publish using someone else's plugin ID.
 
-## 3. Complete your details
+## 3. Listing details
 
-Open `community/LISTING.md` and replace every `TODO` value, especially:
-
-- Support email or support URL
-- GitHub repository URL
-- Publisher name, team, or organization
-
-The plugin does not process data outside the current Figma document, so `PRIVACY.md` accurately describes the code as supplied. Revisit it if you later add analytics, accounts, APIs, fonts, or other network features.
+Everything is filled in. Copy the fields from `community/LISTING.md`.
 
 ## 4. Publish to Figma Community
 
@@ -48,21 +42,6 @@ The plugin does not process data outside the current Figma document, so `PRIVACY
 
 Figma's current review guidelines require a complete, tested plugin, accurate listing material, and a support contact. Your publisher account and submission form—not files in this repository—supply those identity-specific details.
 
-## 5. Publish to GitHub
+## 5. GitHub
 
-Create an empty repository on GitHub without adding a README or license, then run:
-
-```sh
-git add .
-git commit -m "Initial release of Block Mosaic"
-git remote add origin https://github.com/nurfarhad/figma-block-mosaic.git
-git push -u origin main
-```
-
-Then, on GitHub:
-
-1. Add the repository description: `Generate deterministic geometric mosaics in Figma.`
-2. Add topics such as `figma-plugin`, `figma`, `generative-art`, `mosaic`, and `design-tools`.
-3. Upload `assets/github-social-preview-1280x640.png` under **Settings → General → Social preview**.
-4. Replace the TODO URLs in the docs and push that update.
-5. Create a `v1.0.0` release after the Community submission is ready.
+The repository is live at https://github.com/nurfarhad/figma-block-mosaic. Upload `assets/github-social-preview-1280x640.png` under **Settings → General → Social preview**, and create a `v1.0.0` release once Figma approves the plugin.
