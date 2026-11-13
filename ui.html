@@ -1231,6 +1231,22 @@
         else if (label === "Updating…" || label === "Generating…") statusBullet.classList.add("busy");
       }
 
+      /* While a slider is being dragged, only the mini preview updates.
+         The Figma frame is rebuilt once on release (Toolcraft rule: instant
+         light feedback during the gesture, heavy work after it). */
+      let isDragging = false;
+      document.addEventListener("pointerdown", function(e) {
+        if (e.target && e.target.matches && e.target.matches('input[type="range"]')) isDragging = true;
+      }, true);
+      function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        scheduleLiveUpdate();
+      }
+      document.addEventListener("pointerup", endDrag, true);
+      document.addEventListener("pointercancel", endDrag, true);
+      window.addEventListener("blur", endDrag);
+
       function scheduleLiveUpdate() {
         renderMiniPreview();
         window.clearTimeout(liveTimer);
@@ -1238,6 +1254,7 @@
           setStatus("Ready");
           return;
         }
+        if (isDragging) return;
         setStatus("Updating…");
         liveTimer = window.setTimeout(function() {
           parent.postMessage({ pluginMessage: { type: "live-update", params: currentParams() } }, "*");

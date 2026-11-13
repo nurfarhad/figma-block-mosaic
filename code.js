@@ -314,6 +314,25 @@ figma.ui.postMessage({ type: "params-change", params: latestParams });
 postSelectionState();
 figma.on("selectionchange", refreshSelection);
 
+// Serialize live rebuilds: never run two at once, and only apply the newest
+// params if more arrive while one is in progress.
+let liveRunning = false;
+let livePending = null;
+async function queueLiveUpdate(params) {
+  livePending = params;
+  if (liveRunning) return;
+  liveRunning = true;
+  try {
+    while (livePending) {
+      const next = livePending;
+      livePending = null;
+      await runGenerate(next, { createIfNeeded: false, notify: false });
+    }
+  } finally {
+    liveRunning = false;
+  }
+}
+
 figma.ui.onmessage = (message) => {
   if (!message || typeof message !== "object") return;
 
@@ -329,7 +348,7 @@ figma.ui.onmessage = (message) => {
   }
 
   if (message.type === "live-update") {
-    void runGenerate(message.params, { createIfNeeded: false, notify: false });
+    queueLiveUpdate(message.params);
     return;
   }
 
